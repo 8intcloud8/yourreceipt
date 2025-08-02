@@ -1,0 +1,19 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - cd frontend
+        - flutter --version
+        - flutter pub get
+    build:
+      commands:
+        - flutter build web --release
+  artifacts:
+    baseDirectory: frontend/build/web
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - frontend/.dart_tool/**/*
+      - frontend/build/**/*
