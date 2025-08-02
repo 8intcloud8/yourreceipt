@@ -738,7 +738,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
   Future<void> _uploadImage(Uint8List bytes) async {
     setState(() { _loading = true; _error = null; });
     try {
-      final uri = Uri.parse('https://localhost:8000/upload');
+      final uri = Uri.parse('https://abc123def4.execute-api.ap-southeast-2.amazonaws.com/prod/upload');
       final base64img = base64Encode(bytes);
       final response = await http.post(
         uri,
