@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Raw GPT-4o Response</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        pre { background-color: #f5f5f5; padding: 15px; border-radius: 5px; white-space: pre-wrap; }
+        h1 { color: #333; }
+        button { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; 
+                border-radius: 4px; cursor: pointer; margin-bottom: 20px; }
+        button:hover { background-color: #45a049; }
+    </style>
+</head>
+<body>
+    <h1>Raw GPT-4o Response</h1>
+    <button id="refreshBtn">Refresh Response</button>
+    <pre id="responseContent">Loading...</pre>
+
+    <script>
+        // Function to fetch the raw response
+        async function fetchRawResponse() {
+            try {
+                const response = await fetch('http://localhost:8080/raw_response');
+                const data = await response.json();
+                document.getElementById('responseContent').textContent = data.raw_response || 'No response available yet';
+            } catch (error) {
+                document.getElementById('responseContent').textContent = 'Error fetching response: ' + error.message;
+            }
+        }
+
+        // Fetch on page load
+        fetchRawResponse();
+
+        // Add event listener to refresh button
+        document.getElementById('refreshBtn').addEventListener('click', fetchRawResponse);
+    </script>
+</body>
+</html>
