@@ -5,6 +5,9 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
+import 'package:universal_html/html.dart' as html;
+import 'auth_service.dart';
+import 'login_screen.dart';
 
 void main() => runApp(const ReceiptApp());
 
@@ -41,6 +44,11 @@ class ReceiptHomePage extends StatefulWidget {
 }
 
 class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProviderStateMixin {
+  final _authService = AuthService();
+  bool _isAuthenticated = false;
+  bool _isCheckingAuth = true;
+  Map<String, dynamic>? _currentUser;
+  
   Uint8List? _imageBytes;
   Map<String, dynamic>? _jsonResult;
   String? _error;
@@ -52,6 +60,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
   
   // Results storage
   List<Map<String, dynamic>> _submittedReceipts = [];
+  List<Map<String, dynamic>> _allLineItems = [];
   
   // Tab controller
   late TabController _tabController;
@@ -59,7 +68,37 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
+    _checkAuthStatus();
+  }
+  
+  Future<void> _checkAuthStatus() async {
+    final isLoggedIn = await _authService.isLoggedIn();
+    if (isLoggedIn) {
+      final user = await _authService.getCurrentUser();
+      setState(() {
+        _isAuthenticated = true;
+        _currentUser = user;
+        _isCheckingAuth = false;
+      });
+    } else {
+      setState(() {
+        _isAuthenticated = false;
+        _isCheckingAuth = false;
+      });
+    }
+  }
+  
+  void _onLoginSuccess() {
+    _checkAuthStatus();
+  }
+  
+  Future<void> _signOut() async {
+    await _authService.signOut();
+    setState(() {
+      _isAuthenticated = false;
+      _currentUser = null;
+    });
   }
   
   @override
@@ -79,10 +118,82 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
+    // Show loading while checking auth
+    if (_isCheckingAuth) {
+      return Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Colors.blue.shade50, Colors.white],
+            ),
+          ),
+          child: const Center(
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      );
+    }
+    
+    // Show login screen if not authenticated
+    if (!_isAuthenticated) {
+      return LoginScreen(onLoginSuccess: _onLoginSuccess);
+    }
+    
+    // Show main app if authenticated
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Receipt Scanner'),
-        elevation: 4,
+        title: const Text('Receipt Scanner', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          // User profile and sign out
+          PopupMenuButton<String>(
+            icon: CircleAvatar(
+              backgroundColor: Colors.white,
+              child: Text(
+                _currentUser?['name']?.substring(0, 1).toUpperCase() ?? 'U',
+                style: TextStyle(color: Colors.blue.shade600, fontWeight: FontWeight.bold),
+              ),
+            ),
+            onSelected: (value) {
+              if (value == 'signout') {
+                _signOut();
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                enabled: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _currentUser?['name'] ?? 'User',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      _currentUser?['email'] ?? '',
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(
+                value: 'signout',
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Sign Out'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -98,7 +209,11 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                 ),
                 Tab(
                   icon: Icon(Icons.list_alt),
-                  text: 'Results',
+                  text: 'Header Items',
+                ),
+                Tab(
+                  icon: Icon(Icons.receipt_long),
+                  text: 'Line Items',
                 ),
               ],
               labelColor: Colors.blue,
@@ -115,6 +230,8 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                 _buildScannerTab(),
                 // Results Tab
                 _buildResultsTab(),
+                // Line Items Tab
+                _buildLineItemsTab(),
               ],
             ),
           ),
@@ -160,10 +277,16 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                       child: _imageBytes != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(10),
-                              child: Image.memory(
-                                _imageBytes!,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
+                              child: InteractiveViewer(
+                                panEnabled: true,
+                                scaleEnabled: true,
+                                minScale: 0.5,
+                                maxScale: 5.0,
+                                child: Image.memory(
+                                  _imageBytes!,
+                                  width: double.infinity,
+                                  fit: BoxFit.contain,
+                                ),
                               ),
                             )
                           : Center(
@@ -611,7 +734,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                 const Icon(Icons.list_alt, color: Colors.blue),
                 const SizedBox(width: 8),
                 const Text(
-                  'Submitted Receipts',
+                  'Header Items',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue),
                 ),
                 const Spacer(),
@@ -738,7 +861,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
   Future<void> _uploadImage(Uint8List bytes) async {
     setState(() { _loading = true; _error = null; });
     try {
-      final uri = Uri.parse('https://abc123def4.execute-api.ap-southeast-2.amazonaws.com/prod/upload');
+      final uri = Uri.parse('https://keg1z88aee.execute-api.ap-southeast-2.amazonaws.com/prod/upload');
       final base64img = base64Encode(bytes);
       final response = await http.post(
         uri,
@@ -933,6 +1056,23 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
         'fullData': Map<String, dynamic>.from(data),
       };
       
+      // Add line items to the global line items list
+      if (data['items'] != null && data['items'] is List) {
+        for (var item in data['items']) {
+          final lineItem = {
+            'receiptId': receiptResult['id'],
+            'merchant': data['merchant'] ?? '',
+            'date': data['date'] ?? '',
+            'itemName': item['name'] ?? '',
+            'quantity': item['qty'] ?? '',
+            'unitPrice': item['unit_price'] ?? '',
+            'totalPrice': item['total_price'] ?? '',
+            'submittedAt': DateTime.now().toIso8601String(),
+          };
+          _allLineItems.add(lineItem);
+        }
+      }
+      
       setState(() {
         _isSubmitted = true;
         _submittedReceipts.add(receiptResult);
@@ -992,11 +1132,293 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
   }
 
   void _exportToCSV() {
+    // Generate CSV content for header items
+    final csvContent = _generateHeaderCSV();
+    
+    if (kIsWeb) {
+      // For web, trigger file download
+      _downloadCSVFile(csvContent, 'header_items_${DateTime.now().millisecondsSinceEpoch}.csv');
+    } else {
+      // For mobile, show dialog (fallback)
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Header Items CSV Export'),
+          content: SingleChildScrollView(
+            child: Text(csvContent, style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('CSV export feature coming soon!'),
+        content: Text('Header Items CSV exported successfully!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  String _generateHeaderCSV() {
+    final buffer = StringBuffer();
+    buffer.writeln('Merchant,Address,Date,Total,Submitted At');
+    
+    for (final receipt in _submittedReceipts) {
+      buffer.writeln(
+        '"${receipt['merchant'] ?? ''}",'
+        '"${receipt['address'] ?? ''}",'
+        '"${receipt['date'] ?? ''}",'
+        '"${receipt['total'] ?? ''}",'
+        '"${_formatDateTime(receipt['submittedAt'] ?? '')}"'
+      );
+    }
+    
+    return buffer.toString();
+  }
+
+  Widget _buildLineItemsTab() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.blue.shade50, Colors.white],
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                const Icon(Icons.receipt_long, color: Colors.blue),
+                const SizedBox(width: 8),
+                const Text(
+                  'All Line Items',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue),
+                ),
+                const Spacer(),
+                if (_allLineItems.isNotEmpty)
+                  ElevatedButton.icon(
+                    onPressed: _exportLineItemsToCSV,
+                    icon: const Icon(Icons.download, size: 16),
+                    label: const Text('Export CSV'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Line items table
+            Expanded(
+              child: _allLineItems.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey.shade400),
+                          const SizedBox(height: 16),
+                          Text('No line items yet', style: TextStyle(fontSize: 18, color: Colors.grey.shade600)),
+                          const SizedBox(height: 8),
+                          Text('Submit receipts from the Scanner tab to see line items here', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey.shade500)),
+                        ],
+                      ),
+                    )
+                  : Card(
+                      elevation: 4,
+                      child: Column(
+                        children: [
+                          // Table header
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: const BorderRadius.only(topLeft: Radius.circular(8), topRight: Radius.circular(8)),
+                            ),
+                            child: const Row(
+                              children: [
+                                Expanded(flex: 2, child: Text('Merchant', style: TextStyle(fontWeight: FontWeight.bold))),
+                                Expanded(flex: 1, child: Text('Date', style: TextStyle(fontWeight: FontWeight.bold))),
+                                Expanded(flex: 3, child: Text('Item Name', style: TextStyle(fontWeight: FontWeight.bold))),
+                                Expanded(flex: 1, child: Text('Qty', style: TextStyle(fontWeight: FontWeight.bold))),
+                                Expanded(flex: 1, child: Text('Unit Price', style: TextStyle(fontWeight: FontWeight.bold))),
+                                Expanded(flex: 1, child: Text('Total Price', style: TextStyle(fontWeight: FontWeight.bold))),
+                                Expanded(flex: 1, child: Text('Submitted', style: TextStyle(fontWeight: FontWeight.bold))),
+                                SizedBox(width: 80, child: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
+                              ],
+                            ),
+                          ),
+                          // Table rows
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: _allLineItems.length,
+                              itemBuilder: (context, index) {
+                                final lineItem = _allLineItems[index];
+                                return Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+                                    color: index % 2 == 0 ? Colors.white : Colors.grey.shade50,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(flex: 2, child: Text(lineItem['merchant'] ?? '', style: const TextStyle(fontWeight: FontWeight.w500))),
+                                      Expanded(flex: 1, child: Text(lineItem['date'] ?? '')),
+                                      Expanded(flex: 3, child: Text(lineItem['itemName'] ?? '')),
+                                      Expanded(flex: 1, child: Text(lineItem['quantity'] ?? '', textAlign: TextAlign.center)),
+                                      Expanded(flex: 1, child: Text(lineItem['unitPrice'] ?? '', textAlign: TextAlign.right)),
+                                      Expanded(flex: 1, child: Text(lineItem['totalPrice'] ?? '', textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.bold))),
+                                      Expanded(flex: 1, child: Text(_formatDateTime(lineItem['submittedAt'] ?? ''), style: const TextStyle(fontSize: 12))),
+                                      SizedBox(
+                                        width: 80,
+                                        child: IconButton(
+                                          onPressed: () => _deleteLineItem(index),
+                                          icon: const Icon(Icons.delete, color: Colors.red, size: 18),
+                                          tooltip: 'Delete',
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          // Summary footer
+                          if (_allLineItems.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                border: Border(top: BorderSide(color: Colors.grey.shade300)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Expanded(flex: 7, child: Text('Total Items:', style: TextStyle(fontWeight: FontWeight.bold))),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      '${_allLineItems.length} items',
+                                      textAlign: TextAlign.right,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: Colors.blue.shade800,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _deleteLineItem(int index) {
+    setState(() {
+      _allLineItems.removeAt(index);
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Line item deleted'),
         backgroundColor: Colors.orange,
       ),
     );
+  }
+
+  void _exportLineItemsToCSV() {
+    // Generate CSV content for line items
+    final csvContent = _generateLineItemsCSV();
+    
+    if (kIsWeb) {
+      // For web, trigger file download
+      _downloadCSVFile(csvContent, 'line_items_${DateTime.now().millisecondsSinceEpoch}.csv');
+    } else {
+      // For mobile, show dialog (fallback)
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Line Items CSV Export'),
+          content: SingleChildScrollView(
+            child: Text(csvContent, style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // Show success message
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Line Items CSV exported successfully!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  String _generateLineItemsCSV() {
+    final buffer = StringBuffer();
+    buffer.writeln('Merchant,Date,Item Name,Quantity,Unit Price,Total Price,Submitted At');
+    
+    for (final item in _allLineItems) {
+      buffer.writeln(
+        '"${item['merchant'] ?? ''}",'
+        '"${item['date'] ?? ''}",'
+        '"${item['itemName'] ?? ''}",'
+        '"${item['quantity'] ?? ''}",'
+        '"${item['unitPrice'] ?? ''}",'
+        '"${item['totalPrice'] ?? ''}",'
+        '"${_formatDateTime(item['submittedAt'] ?? '')}"'
+      );
+    }
+    
+    return buffer.toString();
+  }
+
+  void _downloadCSVFile(String csvContent, String filename) {
+    if (kIsWeb) {
+      // Create a blob with the CSV content
+      final bytes = utf8.encode(csvContent);
+      final blob = html.Blob([bytes], 'text/csv');
+      
+      // Create a download URL
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      
+      // Create a temporary anchor element and trigger download
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute('download', filename)
+        ..style.display = 'none';
+      
+      html.document.body?.children.add(anchor);
+      anchor.click();
+      
+      // Clean up
+      html.document.body?.children.remove(anchor);
+      html.Url.revokeObjectUrl(url);
+    }
   }
 }
