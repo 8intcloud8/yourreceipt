@@ -1,14 +1,18 @@
 version: 1
 frontend:
+  variables:
+    FLUTTER_WEB: enabled
   phases:
     preBuild:
       commands:
         - cd frontend
         - flutter --version
+        - flutter config --enable-web
+        - flutter clean
         - flutter pub get
     build:
       commands:
-        - flutter build web --release --base-href /
+        - flutter build web --release --base-href / --web-renderer html --verbose
   artifacts:
     baseDirectory: frontend/build/web
     files:
