@@ -10,6 +10,8 @@ frontend/pubspec.lock
 lambda-backend/__pycache__/
 lambda-backend/*.pyc
 lambda-backend/.env
+backend/venv/
+backend/__pycache__/
 
 # IDE
 .vscode/
