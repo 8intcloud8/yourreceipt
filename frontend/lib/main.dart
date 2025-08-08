@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart' as url_launcher;
+
 import 'package:universal_html/html.dart' as html;
 import 'auth_service.dart';
 import 'login_screen.dart';
@@ -73,15 +73,24 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
   }
   
   Future<void> _checkAuthStatus() async {
-    final isLoggedIn = await _authService.isLoggedIn();
-    if (isLoggedIn) {
-      final user = await _authService.getCurrentUser();
-      setState(() {
-        _isAuthenticated = true;
-        _currentUser = user;
-        _isCheckingAuth = false;
-      });
-    } else {
+    try {
+      final isLoggedIn = await _authService.isLoggedIn();
+      if (isLoggedIn) {
+        final user = await _authService.getCurrentUser();
+        setState(() {
+          _isAuthenticated = true;
+          _currentUser = user;
+          _isCheckingAuth = false;
+        });
+      } else {
+        setState(() {
+          _isAuthenticated = false;
+          _isCheckingAuth = false;
+        });
+      }
+    } catch (e) {
+      // If auth check fails, assume not authenticated
+      print('Auth check error: $e');
       setState(() {
         _isAuthenticated = false;
         _isCheckingAuth = false;
@@ -282,6 +291,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                                 scaleEnabled: true,
                                 minScale: 0.5,
                                 maxScale: 5.0,
+                                constrained: false,
                                 child: Image.memory(
                                   _imageBytes!,
                                   width: double.infinity,
@@ -1421,4 +1431,6 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
       html.Url.revokeObjectUrl(url);
     }
   }
+
+
 }

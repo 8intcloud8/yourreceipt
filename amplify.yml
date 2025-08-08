@@ -8,7 +8,7 @@ frontend:
         - flutter pub get
     build:
       commands:
-        - flutter build web --release
+        - flutter build web --release --base-href /
   artifacts:
     baseDirectory: frontend/build/web
     files:
