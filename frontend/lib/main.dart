@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:universal_html/html.dart' as html;
 import 'auth_service.dart';
 import 'login_screen.dart';
+import 'websocket_service.dart';
 
 void main() => runApp(const ReceiptApp());
 
@@ -64,12 +65,55 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
   
   // Tab controller
   late TabController _tabController;
+  
+  // WebSocket service
+  WebSocketService? _wsService;
+  String _progressMessage = '';
+  int _progressPercent = 0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _checkAuthStatus();
+    _initializeWebSocket();
+  }
+  
+  void _initializeWebSocket() {
+    _wsService = WebSocketService();
+    
+    // Listen to WebSocket messages
+    _wsService!.messages.listen((message) {
+      final type = message['type'];
+      
+      if (type == 'progress') {
+        setState(() {
+          _progressMessage = message['message'] ?? '';
+          _progressPercent = message['progress'] ?? 0;
+        });
+      } else if (type == 'result') {
+        setState(() {
+          _jsonResult = message['data'];
+          _isSubmitted = false;
+          _loading = false;
+          _progressMessage = '';
+          _progressPercent = 0;
+          _initializeControllers(message['data']);
+        });
+      } else if (type == 'error') {
+        setState(() {
+          _error = message['message'] ?? 'Unknown error';
+          _loading = false;
+          _progressMessage = '';
+          _progressPercent = 0;
+        });
+      }
+    });
+    
+    // Listen to connection status
+    _wsService!.status.listen((status) {
+      print('WebSocket status: $status');
+    });
   }
   
   
@@ -123,6 +167,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
       }
     }
     _tabController.dispose();
+    _wsService?.dispose();
     super.dispose();
   }
 
@@ -335,13 +380,22 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                     ),
                   ),
                   if (_loading)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 16.0),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16.0),
                       child: Column(
                         children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 8),
-                          Text('Processing receipt...'),
+                          const CircularProgressIndicator(),
+                          const SizedBox(height: 8),
+                          Text(_progressMessage.isEmpty ? 'Processing receipt...' : _progressMessage),
+                          if (_progressPercent > 0)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: LinearProgressIndicator(
+                                value: _progressPercent / 100,
+                                backgroundColor: Colors.grey.shade300,
+                                valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -873,30 +927,28 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
     setState(() { 
       _loading = true; 
       _error = null;
+      _progressMessage = 'Connecting...';
+      _progressPercent = 0;
     });
     
     try {
-      final uri = Uri.parse('https://keg1z88aee.execute-api.ap-southeast-2.amazonaws.com/prod/upload');
       final base64img = base64Encode(bytes);
-      final response = await http.post(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'image_base64': base64img}),
-      );
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() { 
-          _jsonResult = data;
-          _isSubmitted = false;
-          _initializeControllers(data);
-        });
-      } else {
-        setState(() { _error = 'Server error: ${response.statusCode}'; });
+      
+      // Connect to WebSocket if not already connected
+      if (!_wsService!.isConnected) {
+        await _wsService!.connect();
       }
+      
+      // Send the image for processing
+      await _wsService!.processReceipt(base64img);
+      
     } catch (e) {
-      setState(() { _error = 'Network error: $e'; });
-    } finally {
-      setState(() { _loading = false; });
+      setState(() { 
+        _error = 'Connection error: $e';
+        _loading = false;
+        _progressMessage = '';
+        _progressPercent = 0;
+      });
     }
   }
 
