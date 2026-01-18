@@ -5,26 +5,18 @@ frontend:
   phases:
     preBuild:
       commands:
-        - |
-          set -e
-          echo "Current directory: $(pwd)"
-          ls -la
-          git clone https://github.com/flutter/flutter.git -b stable --depth 1
-          export PATH="$PATH:$(pwd)/flutter/bin"
-          flutter --version
-          flutter config --enable-web
-          cd frontend
-          flutter clean
-          flutter pub get
+        - git clone https://github.com/flutter/flutter.git -b stable --depth 1
+        - export PATH="$PATH:`pwd`/flutter/bin"
+        - cd frontend
+        - flutter --version
+        - flutter config --enable-web
+        - flutter clean
+        - flutter pub get
     build:
       commands:
-        - |
-          set -e
-          export PATH="$PATH:$(pwd)/flutter/bin"
-          cd frontend
-          flutter build web --release --base-href /
-          echo "Build completed, checking output:"
-          ls -la build/web
+        - export PATH="$PATH:`pwd`/flutter/bin"
+        - cd frontend
+        - flutter build web --release --base-href /
   artifacts:
     baseDirectory: frontend/build/web
     files:
