@@ -14,12 +14,12 @@ frontend:
         - flutter pub get
     build:
       commands:
-        - pwd && ls -la && export PATH="$PATH:`pwd`/flutter/bin" && cd frontend && flutter build web --release --base-href /
+        - export PATH="$PATH:`pwd`/flutter/bin" && flutter build web --release --base-href /
   artifacts:
-    baseDirectory: frontend/build/web
+    baseDirectory: build/web
     files:
       - '**/*'
   cache:
     paths:
-      - frontend/.dart_tool/**/*
-      - frontend/build/**/*
+      - .dart_tool/**/*
+      - build/**/*
