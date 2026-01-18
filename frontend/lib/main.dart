@@ -87,11 +87,14 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
       final type = message['type'];
       
       if (type == 'progress') {
+        print('DEBUG: Progress - _imageBytes before setState: ${_imageBytes?.length}');
         setState(() {
           _progressMessage = message['message'] ?? '';
           _progressPercent = message['progress'] ?? 0;
         });
+        print('DEBUG: Progress - _imageBytes after setState: ${_imageBytes?.length}');
       } else if (type == 'result') {
+        print('DEBUG: Result - _imageBytes before setState: ${_imageBytes?.length}');
         setState(() {
           _jsonResult = message['data'];
           _isSubmitted = false;
@@ -100,13 +103,16 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
           _progressPercent = 0;
           _initializeControllers(message['data']);
         });
+        print('DEBUG: Result - _imageBytes after setState: ${_imageBytes?.length}');
       } else if (type == 'error') {
+        print('DEBUG: Error - _imageBytes before setState: ${_imageBytes?.length}');
         setState(() {
           _error = message['message'] ?? 'Unknown error';
           _loading = false;
           _progressMessage = '';
           _progressPercent = 0;
         });
+        print('DEBUG: Error - _imageBytes after setState: ${_imageBytes?.length}');
       }
     });
     
@@ -329,34 +335,47 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                           ),
                         ],
                       ),
-                      child: _imageBytes != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: InteractiveViewer(
-                                panEnabled: true,
-                                scaleEnabled: true,
-                                minScale: 0.5,
-                                maxScale: 5.0,
-                                constrained: false,
-                                child: Image.memory(
-                                  _imageBytes!,
-                                  width: double.infinity,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            )
-                          : Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.receipt_long,
-                                    size: 64,
-                                    color: Colors.grey.shade400,
+                      child: Builder(
+                        builder: (context) {
+                          print('DEBUG: Building image container, _imageBytes is ${_imageBytes != null ? "NOT NULL (${_imageBytes!.length} bytes)" : "NULL"}');
+                          return _imageBytes != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: InteractiveViewer(
+                                    panEnabled: true,
+                                    scaleEnabled: true,
+                                    minScale: 0.5,
+                                    maxScale: 5.0,
+                                    constrained: false,
+                                    child: Image.memory(
+                                      _imageBytes!,
+                                      width: double.infinity,
+                                      fit: BoxFit.contain,
+                                    ),
                                   ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'No receipt image',
+                                )
+                              : Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.receipt_long,
+                                        size: 64,
+                                        color: Colors.grey.shade400,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'No receipt image',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                        },
+                      ),
                                     style: TextStyle(
                                       color: Colors.grey.shade600,
                                       fontSize: 16,
@@ -914,11 +933,13 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
     final pickedFile = await picker.pickImage(source: ImageSource.camera, imageQuality: 90);
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
+      print('DEBUG: Image picked, bytes length: ${bytes.length}');
       setState(() {
         _imageBytes = bytes;
         _jsonResult = null;
         _error = null;
       });
+      print('DEBUG: After setState, _imageBytes length: ${_imageBytes?.length}');
       await _uploadImage(bytes);
     }
   }
