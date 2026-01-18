@@ -10,11 +10,11 @@ frontend:
           REPO_ROOT=$(pwd)
           echo "Current directory: $REPO_ROOT"
           ls -la
+          cd $REPO_ROOT
           git clone https://github.com/flutter/flutter.git -b stable --depth 1
           export PATH="$PATH:$REPO_ROOT/flutter/bin"
           flutter --version
           flutter config --enable-web
-          cd $REPO_ROOT/frontend
           flutter clean
           flutter pub get
     build:
@@ -23,15 +23,14 @@ frontend:
           set -e
           REPO_ROOT=$(pwd)
           export PATH="$PATH:$REPO_ROOT/flutter/bin"
-          cd $REPO_ROOT/frontend
           flutter build web --release --base-href /
           echo "Build completed, checking output:"
           ls -la build/web
   artifacts:
-    baseDirectory: frontend/build/web
+    baseDirectory: build/web
     files:
       - '**/*'
   cache:
     paths:
-      - frontend/.dart_tool/**/*
-      - frontend/build/**/*
+      - .dart_tool/**/*
+      - build/**/*
