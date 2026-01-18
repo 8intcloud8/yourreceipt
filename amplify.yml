@@ -5,14 +5,21 @@ frontend:
   phases:
     preBuild:
       commands:
+        - export CODEBUILD_SRC_DIR=${CODEBUILD_SRC_DIR:-$(pwd)}
+        - cd $CODEBUILD_SRC_DIR
         - git clone https://github.com/flutter/flutter.git -b stable --depth 1
-        - export PATH="$PATH:`pwd`/flutter/bin" && flutter --version
-        - export PATH="$PATH:`pwd`/flutter/bin" && flutter config --enable-web
-        - export PATH="$PATH:`pwd`/flutter/bin" && cd frontend && flutter clean
-        - export PATH="$PATH:`pwd`/flutter/bin" && cd frontend && flutter pub get
+        - export PATH="$PATH:$CODEBUILD_SRC_DIR/flutter/bin"
+        - flutter --version
+        - flutter config --enable-web
+        - cd $CODEBUILD_SRC_DIR/frontend
+        - flutter clean
+        - flutter pub get
     build:
       commands:
-        - export PATH="$PATH:`pwd`/flutter/bin" && cd frontend && flutter build web --release --base-href / --web-renderer html --verbose
+        - export CODEBUILD_SRC_DIR=${CODEBUILD_SRC_DIR:-$(pwd)}
+        - export PATH="$PATH:$CODEBUILD_SRC_DIR/flutter/bin"
+        - cd $CODEBUILD_SRC_DIR/frontend
+        - flutter build web --release --base-href / --web-renderer html --verbose
   artifacts:
     baseDirectory: frontend/build/web
     files:
