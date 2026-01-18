@@ -14,9 +14,7 @@ frontend:
           export PATH="$PATH:$REPO_ROOT/flutter/bin"
           flutter --version
           flutter config --enable-web
-          if [ -d "frontend" ]; then
-            cd frontend
-          fi
+          cd $REPO_ROOT/frontend
           flutter clean
           flutter pub get
     build:
@@ -25,15 +23,15 @@ frontend:
           set -e
           REPO_ROOT=$(pwd)
           export PATH="$PATH:$REPO_ROOT/flutter/bin"
-          if [ -d "frontend" ]; then
-            cd frontend
-          fi
+          cd $REPO_ROOT/frontend
           flutter build web --release --base-href /
+          echo "Build completed, checking output:"
+          ls -la build/web
   artifacts:
-    baseDirectory: build/web
+    baseDirectory: frontend/build/web
     files:
       - '**/*'
   cache:
     paths:
-      - .dart_tool/**/*
-      - build/**/*
+      - frontend/.dart_tool/**/*
+      - frontend/build/**/*
