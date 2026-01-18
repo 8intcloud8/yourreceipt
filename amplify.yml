@@ -30,7 +30,7 @@ frontend:
           fi
           flutter build web --release --base-href /
   artifacts:
-    baseDirectory: frontend/build/web
+    baseDirectory: build/web
     files:
       - '**/*'
   cache:
