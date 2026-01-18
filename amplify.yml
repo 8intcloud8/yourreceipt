@@ -14,7 +14,7 @@ frontend:
         - flutter pub get
     build:
       commands:
-        - export PATH="$PATH:`pwd`/flutter/bin" && cd frontend && flutter build web --release --base-href /
+        - pwd && ls -la && export PATH="$PATH:`pwd`/flutter/bin" && cd frontend && flutter build web --release --base-href /
   artifacts:
     baseDirectory: frontend/build/web
     files:
