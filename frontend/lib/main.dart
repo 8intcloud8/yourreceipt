@@ -376,14 +376,6 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                                 );
                         },
                       ),
-                                    style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                     ),
                   ),
                   // Capture button
