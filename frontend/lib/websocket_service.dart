@@ -57,8 +57,13 @@ class WebSocketService {
   }
   
   Future<void> processReceipt(String base64Image) async {
-    // Don't connect here, assume already connected
     print('Sending process message with image length: ${base64Image.length}');
+    
+    // Check if message is too large for WebSocket (128KB limit)
+    if (base64Image.length > 120000) {
+      throw Exception('Image too large: ${base64Image.length} bytes. Max 120KB. Please reduce image quality.');
+    }
+    
     sendMessage({
       'action': 'process',
       'image_base64': base64Image,

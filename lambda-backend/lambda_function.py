@@ -12,7 +12,10 @@ def get_mistral_api_key():
     """Get Mistral API key from AWS Secrets Manager"""
     try:
         response = secrets_client.get_secret_value(SecretId='ReconcileAI/mistral/api-key')
-        return response['SecretString']
+        secret_string = response['SecretString']
+        # Parse the JSON to get the api_key value
+        secret_dict = json.loads(secret_string)
+        return secret_dict['api_key']
     except Exception as e:
         print(f"Error getting Mistral API key from Secrets Manager: {e}")
         raise

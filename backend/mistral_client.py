@@ -27,12 +27,12 @@ def process_image(image_base64, system_prompt):
             
         print(f"Sending request to Mistral OCR API with image of length: {len(image_b64)}")
         
-        # Process with Mistral OCR
+        # Process with Mistral OCR - use "image_url" type for images
         ocr_response = client.ocr.process(
             model="mistral-ocr-latest",
             document={
-                "type": "document_url",
-                "document_url": f"data:image/jpeg;base64,{image_b64}"
+                "type": "image_url",
+                "image_url": f"data:image/jpeg;base64,{image_b64}"
             }
         )
         

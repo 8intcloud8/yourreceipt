@@ -16,8 +16,8 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-# Import our separate OpenAI client module
-from openai_client import process_image, get_last_raw_response
+# Import our Mistral client module
+from mistral_client import process_image, get_last_raw_response
 from csv_exporter import write_receipt_to_csv
 
 # Load OpenAI API key from environment variable
