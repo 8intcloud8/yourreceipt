@@ -19,6 +19,9 @@ class WebSocketService {
       _statusController.add('Connecting...');
       _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
       
+      // Wait for connection to be established
+      await _channel!.ready;
+      
       _statusController.add('Connected');
       
       // Listen to messages
