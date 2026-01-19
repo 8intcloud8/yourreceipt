@@ -1,2 +1,3 @@
 requests==2.31.0
-openai==1.23.6
+mistralai==1.2.4
+boto3==1.34.0

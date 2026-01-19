@@ -2,8 +2,20 @@ import json
 import base64
 import os
 from typing import Dict, Any
-import asyncio
-from openai_client import process_image
+import boto3
+from mistral_client import process_image
+
+# Initialize Secrets Manager client
+secrets_client = boto3.client('secretsmanager', region_name='ap-southeast-2')
+
+def get_mistral_api_key():
+    """Get Mistral API key from AWS Secrets Manager"""
+    try:
+        response = secrets_client.get_secret_value(SecretId='ReconcileAI/mistral/api-key')
+        return response['SecretString']
+    except Exception as e:
+        print(f"Error getting Mistral API key from Secrets Manager: {e}")
+        raise
 
 # Load the GPT-4o prompt
 GPT4O_PROMPT = """
@@ -97,8 +109,11 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'body': json.dumps({'error': f'Image too large. Maximum size is {max_size / (1024 * 1024):.1f} MB'})
             }
         
-        # Process the image with GPT-4o
+        # Process the image with Mistral
         try:
+            # Set the API key from Secrets Manager
+            os.environ['MISTRAL_API_KEY'] = get_mistral_api_key()
+            
             result = process_image(image_base64, GPT4O_PROMPT)
             
             return {
