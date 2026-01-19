@@ -289,6 +289,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                           print('Image display: _imageBytes is ${_imageBytes != null ? "NOT NULL (${_imageBytes!.length} bytes)" : "NULL"}');
                           return _imageBytes != null
                               ? ClipRRect(
+                                  key: ValueKey(_imageBytes!.length), // Force rebuild when image changes
                                   borderRadius: BorderRadius.circular(10),
                                   child: InteractiveViewer(
                                     panEnabled: true,
@@ -300,6 +301,10 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                                       _imageBytes!,
                                       width: double.infinity,
                                       fit: BoxFit.contain,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        print('Image error: $error');
+                                        return Center(child: Text('Error loading image: $error'));
+                                      },
                                     ),
                                   ),
                                 )
