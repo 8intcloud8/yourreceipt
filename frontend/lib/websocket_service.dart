@@ -57,13 +57,7 @@ class WebSocketService {
   }
   
   Future<void> processReceipt(String base64Image) async {
-    if (_channel == null) {
-      await connect();
-    }
-    
-    // Wait a bit to ensure connection is stable
-    await Future.delayed(Duration(milliseconds: 500));
-    
+    // Don't connect here, assume already connected
     print('Sending process message with image length: ${base64Image.length}');
     sendMessage({
       'action': 'process',

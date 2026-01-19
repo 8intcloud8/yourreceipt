@@ -946,16 +946,19 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
     
     try {
       final base64img = base64Encode(bytes);
+      print('DEBUG: Starting upload, base64 length: ${base64img.length}');
       
-      // Connect to WebSocket if not already connected
-      if (!_wsService!.isConnected) {
-        await _wsService!.connect();
-      }
+      // Always reconnect to ensure fresh connection
+      _wsService!.disconnect();
+      await _wsService!.connect();
+      print('DEBUG: Connected, now sending image');
       
       // Send the image for processing
       await _wsService!.processReceipt(base64img);
+      print('DEBUG: Image sent');
       
     } catch (e) {
+      print('DEBUG: Upload error: $e');
       setState(() { 
         _error = 'Connection error: $e';
         _loading = false;
