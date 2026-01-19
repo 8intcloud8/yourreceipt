@@ -284,42 +284,47 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                           ),
                         ],
                       ),
-                      child: _imageBytes != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: InteractiveViewer(
-                                panEnabled: true,
-                                scaleEnabled: true,
-                                minScale: 0.5,
-                                maxScale: 5.0,
-                                constrained: false,
-                                child: Image.memory(
-                                  _imageBytes!,
-                                  width: double.infinity,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            )
-                          : Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.receipt_long,
-                                    size: 64,
-                                    color: Colors.grey.shade400,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'No receipt image',
-                                    style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                      fontSize: 16,
+                      child: Builder(
+                        builder: (context) {
+                          print('Image display: _imageBytes is ${_imageBytes != null ? "NOT NULL (${_imageBytes!.length} bytes)" : "NULL"}');
+                          return _imageBytes != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: InteractiveViewer(
+                                    panEnabled: true,
+                                    scaleEnabled: true,
+                                    minScale: 0.5,
+                                    maxScale: 5.0,
+                                    constrained: false,
+                                    child: Image.memory(
+                                      _imageBytes!,
+                                      width: double.infinity,
+                                      fit: BoxFit.contain,
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
+                                )
+                              : Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.receipt_long,
+                                        size: 64,
+                                        color: Colors.grey.shade400,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'No receipt image',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                        },
+                      ),
                     ),
                   ),
                   // Capture button
