@@ -8,7 +8,6 @@ import 'package:http/http.dart' as http;
 import 'package:universal_html/html.dart' as html;
 import 'auth_service.dart';
 import 'login_screen.dart';
-import 'websocket_service.dart';
 
 void main() => runApp(const ReceiptApp());
 
@@ -65,61 +64,12 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
   
   // Tab controller
   late TabController _tabController;
-  
-  // WebSocket service
-  WebSocketService? _wsService;
-  String _progressMessage = '';
-  int _progressPercent = 0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _checkAuthStatus();
-    _initializeWebSocket();
-  }
-  
-  void _initializeWebSocket() {
-    _wsService = WebSocketService();
-    
-    // Listen to WebSocket messages
-    _wsService!.messages.listen((message) {
-      final type = message['type'];
-      
-      if (type == 'progress') {
-        print('DEBUG: Progress - _imageBytes before setState: ${_imageBytes?.length}');
-        setState(() {
-          _progressMessage = message['message'] ?? '';
-          _progressPercent = message['progress'] ?? 0;
-        });
-        print('DEBUG: Progress - _imageBytes after setState: ${_imageBytes?.length}');
-      } else if (type == 'result') {
-        print('DEBUG: Result - _imageBytes before setState: ${_imageBytes?.length}');
-        setState(() {
-          _jsonResult = message['data'];
-          _isSubmitted = false;
-          _loading = false;
-          _progressMessage = '';
-          _progressPercent = 0;
-          _initializeControllers(message['data']);
-        });
-        print('DEBUG: Result - _imageBytes after setState: ${_imageBytes?.length}');
-      } else if (type == 'error') {
-        print('DEBUG: Error - _imageBytes before setState: ${_imageBytes?.length}');
-        setState(() {
-          _error = message['message'] ?? 'Unknown error';
-          _loading = false;
-          _progressMessage = '';
-          _progressPercent = 0;
-        });
-        print('DEBUG: Error - _imageBytes after setState: ${_imageBytes?.length}');
-      }
-    });
-    
-    // Listen to connection status
-    _wsService!.status.listen((status) {
-      print('WebSocket status: $status');
-    });
   }
   
   
@@ -173,7 +123,6 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
       }
     }
     _tabController.dispose();
-    _wsService?.dispose();
     super.dispose();
   }
 
@@ -335,47 +284,42 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                           ),
                         ],
                       ),
-                      child: Builder(
-                        builder: (context) {
-                          print('DEBUG: Building image container, _imageBytes is ${_imageBytes != null ? "NOT NULL (${_imageBytes!.length} bytes)" : "NULL"}');
-                          return _imageBytes != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: InteractiveViewer(
-                                    panEnabled: true,
-                                    scaleEnabled: true,
-                                    minScale: 0.5,
-                                    maxScale: 5.0,
-                                    constrained: false,
-                                    child: Image.memory(
-                                      _imageBytes!,
-                                      width: double.infinity,
-                                      fit: BoxFit.contain,
+                      child: _imageBytes != null
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: InteractiveViewer(
+                                panEnabled: true,
+                                scaleEnabled: true,
+                                minScale: 0.5,
+                                maxScale: 5.0,
+                                constrained: false,
+                                child: Image.memory(
+                                  _imageBytes!,
+                                  width: double.infinity,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            )
+                          : Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.receipt_long,
+                                    size: 64,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'No receipt image',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 16,
                                     ),
                                   ),
-                                )
-                              : Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.receipt_long,
-                                        size: 64,
-                                        color: Colors.grey.shade400,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'No receipt image',
-                                        style: TextStyle(
-                                          color: Colors.grey.shade600,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                        },
-                      ),
+                                ],
+                              ),
+                            ),
                     ),
                   ),
                   // Capture button
@@ -391,22 +335,13 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                     ),
                   ),
                   if (_loading)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16.0),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 16.0),
                       child: Column(
                         children: [
-                          const CircularProgressIndicator(),
-                          const SizedBox(height: 8),
-                          Text(_progressMessage.isEmpty ? 'Processing receipt...' : _progressMessage),
-                          if (_progressPercent > 0)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: LinearProgressIndicator(
-                                value: _progressPercent / 100,
-                                backgroundColor: Colors.grey.shade300,
-                                valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
-                              ),
-                            ),
+                          CircularProgressIndicator(),
+                          SizedBox(height: 8),
+                          Text('Processing receipt...'),
                         ],
                       ),
                     ),
@@ -925,13 +860,11 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
     final pickedFile = await picker.pickImage(source: ImageSource.camera, imageQuality: 90);
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
-      print('DEBUG: Image picked, bytes length: ${bytes.length}');
       setState(() {
         _imageBytes = bytes;
         _jsonResult = null;
         _error = null;
       });
-      print('DEBUG: After setState, _imageBytes length: ${_imageBytes?.length}');
       await _uploadImage(bytes);
     }
   }
@@ -940,30 +873,37 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
     setState(() { 
       _loading = true; 
       _error = null;
-      _progressMessage = 'Connecting...';
-      _progressPercent = 0;
     });
     
     try {
+      final uri = Uri.parse('https://keg1z88aee.execute-api.ap-southeast-2.amazonaws.com/prod/upload');
       final base64img = base64Encode(bytes);
-      print('DEBUG: Starting upload, base64 length: ${base64img.length}');
       
-      // Always reconnect to ensure fresh connection
-      _wsService!.disconnect();
-      await _wsService!.connect();
-      print('DEBUG: Connected, now sending image');
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'image_base64': base64img}),
+      );
       
-      // Send the image for processing
-      await _wsService!.processReceipt(base64img);
-      print('DEBUG: Image sent');
-      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() { 
+          _jsonResult = data;
+          _isSubmitted = false;
+          _initializeControllers(data);
+        });
+      } else {
+        setState(() { 
+          _error = 'Server error: ${response.statusCode}';
+        });
+      }
     } catch (e) {
-      print('DEBUG: Upload error: $e');
       setState(() { 
-        _error = 'Connection error: $e';
+        _error = 'Network error: $e';
+      });
+    } finally {
+      setState(() { 
         _loading = false;
-        _progressMessage = '';
-        _progressPercent = 0;
       });
     }
   }
