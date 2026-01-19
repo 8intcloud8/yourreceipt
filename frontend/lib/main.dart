@@ -290,28 +290,30 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                               child: Container(
                                 color: Colors.grey.shade100,
                                 child: InteractiveViewer(
+                                  panEnabled: true,
+                                  scaleEnabled: true,
                                   minScale: 0.5,
-                                  maxScale: 5.0,
-                                  boundaryMargin: const EdgeInsets.all(20),
-                                  child: Image.memory(
-                                    _imageBytes!,
-                                    key: ValueKey(_imageBytes!.length),
-                                    fit: BoxFit.contain,
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      print('Image error: $error');
-                                      return Center(
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(Icons.error, color: Colors.red, size: 48),
-                                            SizedBox(height: 8),
-                                            Text('Error: $error', style: TextStyle(color: Colors.red)),
-                                          ],
-                                        ),
-                                      );
-                                    },
+                                  maxScale: 4.0,
+                                  boundaryMargin: const EdgeInsets.all(80),
+                                  child: Center(
+                                    child: Image.memory(
+                                      _imageBytes!,
+                                      key: ValueKey(_imageBytes!.length),
+                                      fit: BoxFit.contain,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        print('Image error: $error');
+                                        return Center(
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.error, color: Colors.red, size: 48),
+                                              SizedBox(height: 8),
+                                              Text('Error: $error', style: TextStyle(color: Colors.red)),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   ),
                                 ),
                               ),
