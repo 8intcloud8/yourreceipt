@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -20,8 +21,15 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   bool _isSignUp = false;
   bool _needsVerification = false;
+  bool _rememberMe = false;
   String? _errorMessage;
   String? _successMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
 
   @override
   void dispose() {
@@ -30,6 +38,34 @@ class _LoginScreenState extends State<LoginScreen> {
     _nameController.dispose();
     _codeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedEmail = prefs.getString('saved_email');
+    final savedPassword = prefs.getString('saved_password');
+    final rememberMe = prefs.getBool('remember_me') ?? false;
+    
+    if (rememberMe && savedEmail != null && savedPassword != null) {
+      setState(() {
+        _emailController.text = savedEmail;
+        _passwordController.text = savedPassword;
+        _rememberMe = true;
+      });
+    }
+  }
+
+  Future<void> _saveCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (_rememberMe) {
+      await prefs.setString('saved_email', _emailController.text.trim());
+      await prefs.setString('saved_password', _passwordController.text);
+      await prefs.setBool('remember_me', true);
+    } else {
+      await prefs.remove('saved_email');
+      await prefs.remove('saved_password');
+      await prefs.setBool('remember_me', false);
+    }
   }
 
   Future<void> _signIn() async {
@@ -55,6 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     if (result['success']) {
+      await _saveCredentials();
       widget.onLoginSuccess();
     } else {
       setState(() {
@@ -291,7 +328,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       obscureText: true,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 8),
+
+                    // Remember Me checkbox (only for sign in)
+                    if (!_isSignUp)
+                      Row(
+                        children: [
+                          Checkbox(
+                            value: _rememberMe,
+                            onChanged: (value) {
+                              setState(() {
+                                _rememberMe = value ?? false;
+                              });
+                            },
+                          ),
+                          const Text('Remember Me'),
+                        ],
+                      ),
+                    const SizedBox(height: 16),
 
                     // Sign in/up button
                     SizedBox(
