@@ -61,6 +61,10 @@ class WebSocketService {
       await connect();
     }
     
+    // Wait a bit to ensure connection is stable
+    await Future.delayed(Duration(milliseconds: 500));
+    
+    print('Sending process message with image length: ${base64Image.length}');
     sendMessage({
       'action': 'process',
       'image_base64': base64Image,
