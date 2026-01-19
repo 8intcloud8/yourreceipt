@@ -285,14 +285,31 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                         ],
                       ),
                       child: _imageBytes != null
-                          ? Image.memory(
-                              _imageBytes!,
-                              key: ValueKey(_imageBytes!.length),
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                print('Image error: $error');
-                                return Center(child: Text('Error: $error'));
-                              },
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                color: Colors.grey.shade100,
+                                child: Image.memory(
+                                  _imageBytes!,
+                                  key: ValueKey(_imageBytes!.length),
+                                  fit: BoxFit.contain,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    print('Image error: $error');
+                                    return Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.error, color: Colors.red, size: 48),
+                                          SizedBox(height: 8),
+                                          Text('Error: $error', style: TextStyle(color: Colors.red)),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
                             )
                           : Center(
                               child: Column(
@@ -854,11 +871,13 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
     final pickedFile = await picker.pickImage(source: ImageSource.camera, imageQuality: 90);
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
+      print('Image picked: ${bytes.length} bytes');
       setState(() {
         _imageBytes = bytes;
         _jsonResult = null;
         _error = null;
       });
+      print('State updated with image bytes: ${_imageBytes?.length}');
       await _uploadImage(bytes);
     }
   }
