@@ -17,7 +17,6 @@ dependencies:
   universal_html: ^2.2.4
   amazon_cognito_identity_dart_2: ^3.0.1
   shared_preferences: ^2.2.2
-  web_socket_channel: ^2.4.0
 
 dev_dependencies:
   flutter_test:

@@ -91,7 +91,6 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
       }
     } catch (e) {
       // If auth check fails, assume not authenticated
-      print('Auth check error: $e');
       setState(() {
         _isAuthenticated = false;
         _isCheckingAuth = false;
@@ -301,7 +300,6 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                                       key: ValueKey(_imageBytes!.length),
                                       fit: BoxFit.contain,
                                       errorBuilder: (context, error, stackTrace) {
-                                        print('Image error: $error');
                                         return Center(
                                           child: Column(
                                             mainAxisAlignment: MainAxisAlignment.center,
@@ -878,13 +876,11 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
     final pickedFile = await picker.pickImage(source: ImageSource.camera, imageQuality: 90);
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
-      print('Image picked: ${bytes.length} bytes');
       setState(() {
         _imageBytes = bytes;
         _jsonResult = null;
         _error = null;
       });
-      print('State updated with image bytes: ${_imageBytes?.length}');
       await _uploadImage(bytes);
     }
   }

@@ -13,6 +13,13 @@ lambda-backend/.env
 backend/venv/
 backend/__pycache__/
 backend/.env
+.venv/
+
+# SSL Certificates (regenerate locally if needed)
+*.pem
+*.key
+*.crt
+*.cert
 
 # IDE
 .vscode/
@@ -32,3 +39,10 @@ simple-test.zip
 # Test directories
 test-deploy/
 simple-test/
+
+# Receipts storage (if any)
+receipts/
+*.jpg
+*.jpeg
+*.png
+*.pdf
