@@ -474,7 +474,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                             width: 120,
                             child: TextField(
                               controller: _controllers['total'],
-                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green.shade800),
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green.shade800),
                               textAlign: TextAlign.right,
                               decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
@@ -484,7 +484,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                           )
                         : Text(
                             data['total'] ?? 'Unknown',
-                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green.shade800),
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green.shade800),
                           ),
                   ],
                 ),
