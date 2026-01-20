@@ -28,9 +28,8 @@ Extract the following information from this receipt image and return it as a JSO
   "merchant": "Store name",
   "address": "Store address", 
   "date": "Date in YYYY-MM-DD format",
-  "receipt_id": "Receipt number or invoice number",
-  "transaction_id": "Transaction ID or reference number",
-  "tax": "Tax/GST amount with currency symbol",
+  "receipt_id": "Receipt number, invoice number, or receipt ID",
+  "tax": "Tax amount (GST, VAT, or sales tax) with currency symbol",
   "total": "Total amount with currency symbol",
   "items": [
     {
@@ -42,7 +41,10 @@ Extract the following information from this receipt image and return it as a JSO
   ]
 }
 
-Be precise and extract exactly what's shown on the receipt. If information is unclear or missing, use empty strings.
+Be precise and extract exactly what's shown on the receipt. Look for:
+- Receipt ID: May be labeled as "Receipt #", "Invoice #", "Receipt No", "Invoice No", or similar
+- Tax: Look for GST, VAT, Sales Tax, or Tax line items
+If information is unclear or missing, use empty strings.
 """
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -151,7 +153,6 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'address': '',
                         'date': '',
                         'receipt_id': '',
-                        'transaction_id': '',
                         'tax': '',
                         'total': '',
                         'items': []
