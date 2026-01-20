@@ -133,6 +133,23 @@ class LandingPage extends StatelessWidget {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 24),
+                  
+                  // Contact email
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.email, color: Colors.grey.shade600, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Contact: info at intelligentcloud.com.au',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
