@@ -72,6 +72,24 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _checkAuthStatus();
+    _checkSubdomain();
+  }
+  
+  void _checkSubdomain() {
+    if (kIsWeb) {
+      final hostname = html.window.location.hostname ?? '';
+      // If on root domain, show landing page
+      // If on app subdomain or localhost, skip landing
+      if (hostname == 'yourreceipt.online') {
+        setState(() {
+          _showLanding = true;
+        });
+      } else {
+        setState(() {
+          _showLanding = false;
+        });
+      }
+    }
   }
   
   

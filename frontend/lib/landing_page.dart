@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:universal_html/html.dart' as html;
 
 class LandingPage extends StatelessWidget {
   final VoidCallback onGetStarted;
@@ -67,7 +69,19 @@ class LandingPage extends StatelessWidget {
                   
                   // CTA Button
                   ElevatedButton(
-                    onPressed: onGetStarted,
+                    onPressed: () {
+                      // Redirect to app subdomain if on root domain
+                      if (kIsWeb) {
+                        final hostname = html.window.location.hostname ?? '';
+                        if (hostname == 'yourreceipt.online') {
+                          html.window.location.href = 'https://app.yourreceipt.online';
+                        } else {
+                          onGetStarted();
+                        }
+                      } else {
+                        onGetStarted();
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
