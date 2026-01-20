@@ -446,6 +446,10 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
               
               // Date
               _buildDataField('Date', data['date'] ?? '', Icons.calendar_today, 'date'),
+              const SizedBox(height: 12),
+              
+              // Tax
+              _buildDataField('Tax', data['tax'] ?? '', Icons.receipt, 'tax'),
               const SizedBox(height: 16),
               
               // Total
@@ -809,6 +813,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                                 Expanded(flex: 2, child: Text('Merchant', style: TextStyle(fontWeight: FontWeight.bold))),
                                 Expanded(flex: 2, child: Text('Address', style: TextStyle(fontWeight: FontWeight.bold))),
                                 Expanded(child: Text('Date', style: TextStyle(fontWeight: FontWeight.bold))),
+                                Expanded(child: Text('Tax', style: TextStyle(fontWeight: FontWeight.bold))),
                                 Expanded(child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold))),
                                 Expanded(child: Text('Submitted', style: TextStyle(fontWeight: FontWeight.bold))),
                                 SizedBox(width: 100, child: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
@@ -831,6 +836,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                                       Expanded(flex: 2, child: Text(receipt['merchant'] ?? '')),
                                       Expanded(flex: 2, child: Text(receipt['address'] ?? '')),
                                       Expanded(child: Text(receipt['date'] ?? '')),
+                                      Expanded(child: Text(receipt['tax'] ?? '')),
                                       Expanded(child: Text(receipt['total'] ?? '')),
                                       Expanded(child: Text(_formatDateTime(receipt['submittedAt']))),
                                       SizedBox(
@@ -930,6 +936,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
     _controllers['merchant'] = TextEditingController(text: data['merchant'] ?? '');
     _controllers['address'] = TextEditingController(text: data['address'] ?? '');
     _controllers['date'] = TextEditingController(text: data['date'] ?? '');
+    _controllers['tax'] = TextEditingController(text: data['tax'] ?? '');
     _controllers['total'] = TextEditingController(text: data['total'] ?? '');
     
     // Initialize controllers for items
@@ -1074,6 +1081,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
       data['merchant'] = _controllers['merchant']?.text ?? data['merchant'];
       data['address'] = _controllers['address']?.text ?? data['address'];
       data['date'] = _controllers['date']?.text ?? data['date'];
+      data['tax'] = _controllers['tax']?.text ?? data['tax'];
       data['total'] = _controllers['total']?.text ?? data['total'];
       
       // Update items
@@ -1090,6 +1098,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
         'merchant': data['merchant'] ?? '',
         'address': data['address'] ?? '',
         'date': data['date'] ?? '',
+        'tax': data['tax'] ?? '',
         'total': data['total'] ?? '',
         'submittedAt': DateTime.now().toIso8601String(),
         'fullData': Map<String, dynamic>.from(data),
@@ -1207,13 +1216,14 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
 
   String _generateHeaderCSV() {
     final buffer = StringBuffer();
-    buffer.writeln('Merchant,Address,Date,Total,Submitted At');
+    buffer.writeln('Merchant,Address,Date,Tax,Total,Submitted At');
     
     for (final receipt in _submittedReceipts) {
       buffer.writeln(
         '"${receipt['merchant'] ?? ''}",'
         '"${receipt['address'] ?? ''}",'
         '"${receipt['date'] ?? ''}",'
+        '"${receipt['tax'] ?? ''}",'
         '"${receipt['total'] ?? ''}",'
         '"${_formatDateTime(receipt['submittedAt'] ?? '')}"'
       );

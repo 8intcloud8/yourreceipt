@@ -28,6 +28,7 @@ Extract the following information from this receipt image and return it as a JSO
   "merchant": "Store name",
   "address": "Store address", 
   "date": "Date in YYYY-MM-DD format",
+  "tax": "Tax/GST amount with currency symbol",
   "total": "Total amount with currency symbol",
   "items": [
     {
@@ -147,6 +148,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                         'merchant': '',
                         'address': '',
                         'date': '',
+                        'tax': '',
                         'total': '',
                         'items': []
                     }
