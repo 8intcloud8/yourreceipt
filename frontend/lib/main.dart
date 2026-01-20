@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:universal_html/html.dart' as html;
 import 'auth_service.dart';
 import 'login_screen.dart';
+import 'landing_page.dart';
 
 void main() => runApp(const ReceiptApp());
 
@@ -47,6 +48,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
   final _authService = AuthService();
   bool _isAuthenticated = false;
   bool _isCheckingAuth = true;
+  bool _showLanding = true;
   Map<String, dynamic>? _currentUser;
   
   Uint8List? _imageBytes;
@@ -142,6 +144,17 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
             child: CircularProgressIndicator(),
           ),
         ),
+      );
+    }
+    
+    // Show landing page if not authenticated and landing should be shown
+    if (!_isAuthenticated && _showLanding) {
+      return LandingPage(
+        onGetStarted: () {
+          setState(() {
+            _showLanding = false;
+          });
+        },
       );
     }
     
