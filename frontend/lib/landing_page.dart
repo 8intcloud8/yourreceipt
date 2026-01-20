@@ -105,6 +105,34 @@ class LandingPage extends StatelessWidget {
                       color: Colors.grey.shade600,
                     ),
                   ),
+                  const SizedBox(height: 32),
+                  
+                  // Privacy note
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.green.shade200),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.lock, color: Colors.green.shade700, size: 20),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            'Your data stays with you. We don\'t store any receipt data on our servers.',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.green.shade900,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
