@@ -211,7 +211,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Receipt Scanner',
+                    'Receipt Automation',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -220,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'AI-powered receipt processing',
+                    'Turn receipts into accounting-ready data',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey.shade600,
@@ -379,7 +379,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text(
                         _isSignUp
                             ? 'Already have an account? Sign In'
-                            : 'Don\'t have an account? Sign Up',
+                            : 'Start a Free Trial',
                         style: TextStyle(color: Colors.blue.shade600),
                       ),
                     ),
