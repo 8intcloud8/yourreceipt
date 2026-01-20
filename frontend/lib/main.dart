@@ -448,6 +448,14 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
               _buildDataField('Date', data['date'] ?? '', Icons.calendar_today, 'date'),
               const SizedBox(height: 12),
               
+              // Receipt ID
+              _buildDataField('Receipt ID', data['receipt_id'] ?? '', Icons.receipt, 'receipt_id'),
+              const SizedBox(height: 12),
+              
+              // Transaction ID
+              _buildDataField('Transaction ID', data['transaction_id'] ?? '', Icons.tag, 'transaction_id'),
+              const SizedBox(height: 12),
+              
               // Tax
               _buildDataField('Tax', data['tax'] ?? '', Icons.receipt, 'tax'),
               const SizedBox(height: 16),
@@ -813,6 +821,8 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                                 Expanded(flex: 2, child: Text('Merchant', style: TextStyle(fontWeight: FontWeight.bold))),
                                 Expanded(flex: 2, child: Text('Address', style: TextStyle(fontWeight: FontWeight.bold))),
                                 Expanded(child: Text('Date', style: TextStyle(fontWeight: FontWeight.bold))),
+                                Expanded(child: Text('Receipt ID', style: TextStyle(fontWeight: FontWeight.bold))),
+                                Expanded(child: Text('Transaction ID', style: TextStyle(fontWeight: FontWeight.bold))),
                                 Expanded(child: Text('Tax', style: TextStyle(fontWeight: FontWeight.bold))),
                                 Expanded(child: Text('Total', style: TextStyle(fontWeight: FontWeight.bold))),
                                 Expanded(child: Text('Submitted', style: TextStyle(fontWeight: FontWeight.bold))),
@@ -836,6 +846,8 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                                       Expanded(flex: 2, child: Text(receipt['merchant'] ?? '')),
                                       Expanded(flex: 2, child: Text(receipt['address'] ?? '')),
                                       Expanded(child: Text(receipt['date'] ?? '')),
+                                      Expanded(child: Text(receipt['receipt_id'] ?? '')),
+                                      Expanded(child: Text(receipt['transaction_id'] ?? '')),
                                       Expanded(child: Text(receipt['tax'] ?? '')),
                                       Expanded(child: Text(receipt['total'] ?? '')),
                                       Expanded(child: Text(_formatDateTime(receipt['submittedAt']))),
@@ -936,6 +948,8 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
     _controllers['merchant'] = TextEditingController(text: data['merchant'] ?? '');
     _controllers['address'] = TextEditingController(text: data['address'] ?? '');
     _controllers['date'] = TextEditingController(text: data['date'] ?? '');
+    _controllers['receipt_id'] = TextEditingController(text: data['receipt_id'] ?? '');
+    _controllers['transaction_id'] = TextEditingController(text: data['transaction_id'] ?? '');
     _controllers['tax'] = TextEditingController(text: data['tax'] ?? '');
     _controllers['total'] = TextEditingController(text: data['total'] ?? '');
     
@@ -1081,6 +1095,8 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
       data['merchant'] = _controllers['merchant']?.text ?? data['merchant'];
       data['address'] = _controllers['address']?.text ?? data['address'];
       data['date'] = _controllers['date']?.text ?? data['date'];
+      data['receipt_id'] = _controllers['receipt_id']?.text ?? data['receipt_id'];
+      data['transaction_id'] = _controllers['transaction_id']?.text ?? data['transaction_id'];
       data['tax'] = _controllers['tax']?.text ?? data['tax'];
       data['total'] = _controllers['total']?.text ?? data['total'];
       
@@ -1098,6 +1114,8 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
         'merchant': data['merchant'] ?? '',
         'address': data['address'] ?? '',
         'date': data['date'] ?? '',
+        'receipt_id': data['receipt_id'] ?? '',
+        'transaction_id': data['transaction_id'] ?? '',
         'tax': data['tax'] ?? '',
         'total': data['total'] ?? '',
         'submittedAt': DateTime.now().toIso8601String(),
@@ -1216,13 +1234,15 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
 
   String _generateHeaderCSV() {
     final buffer = StringBuffer();
-    buffer.writeln('Merchant,Address,Date,Tax,Total,Submitted At');
+    buffer.writeln('Merchant,Address,Date,Receipt ID,Transaction ID,Tax,Total,Submitted At');
     
     for (final receipt in _submittedReceipts) {
       buffer.writeln(
         '"${receipt['merchant'] ?? ''}",'
         '"${receipt['address'] ?? ''}",'
         '"${receipt['date'] ?? ''}",'
+        '"${receipt['receipt_id'] ?? ''}",'
+        '"${receipt['transaction_id'] ?? ''}",'
         '"${receipt['tax'] ?? ''}",'
         '"${receipt['total'] ?? ''}",'
         '"${_formatDateTime(receipt['submittedAt'] ?? '')}"'
