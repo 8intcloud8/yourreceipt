@@ -153,7 +153,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
     // Show main app if authenticated
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Receipt Scanner', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Receipt Automation', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -214,7 +214,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
               tabs: const [
                 Tab(
                   icon: Icon(Icons.camera_alt),
-                  text: 'Scanner',
+                  text: 'Upload Receipt',
                 ),
                 Tab(
                   icon: Icon(Icons.list_alt),
@@ -343,7 +343,7 @@ class _ReceiptHomePageState extends State<ReceiptHomePage> with SingleTickerProv
                   ElevatedButton.icon(
                     onPressed: _loading ? null : _pickImage,
                     icon: const Icon(Icons.camera_alt),
-                    label: const Text('Capture Receipt', style: TextStyle(fontSize: 16)),
+                    label: const Text('Process Receipt', style: TextStyle(fontSize: 16)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
